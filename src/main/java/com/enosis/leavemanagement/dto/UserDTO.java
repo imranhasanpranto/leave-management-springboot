@@ -1,14 +1,12 @@
 package com.enosis.leavemanagement.dto;
 
-import com.enosis.leavemanagement.enums.UserType;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import com.enosis.leavemanagement.enums.Role;
+import lombok.*;
 
 
 @Setter
 @Getter
+@ToString
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserDTO {
@@ -16,5 +14,5 @@ public class UserDTO {
     private String name;
     private String email;
     private String password;
-    private UserType userType;
+    private Role role;
 }

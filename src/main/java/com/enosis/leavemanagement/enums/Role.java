@@ -1,6 +1,6 @@
 package com.enosis.leavemanagement.enums;
 
-public enum UserType {
+public enum Role {
     Admin,
     Employee
 }
