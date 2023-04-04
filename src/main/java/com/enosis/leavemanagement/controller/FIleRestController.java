@@ -20,13 +20,11 @@ import java.nio.file.Paths;
 @RequestMapping("/api/file")
 public class FIleRestController {
     private final FileService fileService;
-    @GetMapping("/get-file/{filePath}")
-    public ResponseEntity<?> getProfileImage(@PathVariable String filePath) {
+    @GetMapping("/get-file/{id}/{filePath}")
+    public ResponseEntity<?> getProfileImage(@PathVariable Long id, @PathVariable String filePath) {
         try {
-            //Path imagePath = fileService.fetchProfilePhotoByUserId(filePath);
-            Path imagePath = Paths.get("uploads/1/"+filePath);
+            Path imagePath = Paths.get("uploads/"+String.valueOf(id)+"/"+filePath);
             if (imagePath != null) {
-                System.out.println("Getting image from " + imagePath.toString());
 
                 ByteArrayResource resource = new ByteArrayResource(Files.readAllBytes(imagePath));
 
@@ -36,7 +34,6 @@ public class FIleRestController {
                         .contentType(MediaType.IMAGE_JPEG)
                         .body(resource);
             } else {
-                System.out.println("Profile photo not found for user " + filePath);
                 return ResponseEntity.status(HttpStatus.OK).build();
             }
         } catch (Exception e) {

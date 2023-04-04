@@ -25,11 +25,11 @@ public class LeaveService {
     private final FileService fileService;
     private final UserService userService;
 
-    public String saveLeaveApplication(LeaveApplicationDTO leaveApplicationDTO){
+    public String saveLeaveApplication(LeaveApplicationDTO leaveApplicationDTO, Long userId){
         String path = "";
         try {
             if(leaveApplicationDTO.getFile() != null) {
-                path = fileService.saveFile(leaveApplicationDTO.getFile());
+                path = fileService.saveFile(leaveApplicationDTO.getFile(), userId);
             }
         } catch (FileSaveException e) {
             e.printStackTrace();
@@ -45,7 +45,7 @@ public class LeaveService {
         LeaveApplication leaveApplication = convertDtoToEntity(leaveApplicationDTO);
         leaveApplication.setFilePath(path);
         leaveApplication.setApplicationStatus(ApplicationStatus.Pending);
-        leaveApplication.setUserId(1L);
+        leaveApplication.setUserId(userId);
         save(leaveApplication);
 
         //leave count

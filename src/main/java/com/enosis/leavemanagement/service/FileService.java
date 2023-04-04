@@ -20,8 +20,8 @@ public class FileService {
         Path path = this.rootLocation.resolve(fileName + String.valueOf(employeeId));
         return path;
     }
-    public String saveFile(MultipartFile file) throws FileSaveException {
-        String pathStr, fileName;
+    public String saveFile(MultipartFile file, Long userId) throws FileSaveException {
+        String fileName;
         try {
             Files.createDirectories(rootLocation);
         } catch (IOException e) {
@@ -30,9 +30,9 @@ public class FileService {
         try {
             try {
                 fileName = System.currentTimeMillis()+"_"+file.getOriginalFilename();
-                pathStr = "1/"+fileName;
-                Path path = this.rootLocation.resolve(pathStr);
-                Files.createDirectories(this.rootLocation.resolve("1"));
+                fileName = String.valueOf(userId)+"/"+fileName;
+                Path path = this.rootLocation.resolve(fileName);
+                Files.createDirectories(this.rootLocation.resolve(String.valueOf(userId)));
                 Files.copy(file.getInputStream(), path);
             } catch (Exception e) {
                 throw new RuntimeException("FAIL!");

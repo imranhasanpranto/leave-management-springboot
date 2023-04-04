@@ -32,9 +32,9 @@ import java.util.List;
 public class LeaveRestController {
     private final LeaveService leaveService;
     @PostMapping("/add")
-    public ResponseEntity<RestResponse> addApplication(@ModelAttribute LeaveApplicationDTO leaveApplicationDTO){
-        System.out.println("LeaveApplicationDTO: "+ leaveApplicationDTO);
-        leaveService.saveLeaveApplication(leaveApplicationDTO);
+    public ResponseEntity<RestResponse> addApplication(@ModelAttribute LeaveApplicationDTO leaveApplicationDTO, Authentication authentication){
+        Users users = (Users) authentication.getPrincipal();
+        leaveService.saveLeaveApplication(leaveApplicationDTO, users.getId());
         RestResponse response = RestResponse.builder().message("leave request added successfully").build();
         return ResponseEntity.ok(response);
     }
