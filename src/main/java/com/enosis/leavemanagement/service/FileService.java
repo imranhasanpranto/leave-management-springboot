@@ -45,24 +45,12 @@ public class FileService {
         }
     }
 
-    public Path fetchProfilePhotoByUserId(String filePath) {
-        Path imagePath = null;
-
-        Path rootLocation = Paths.get("uploads/1");
-        System.out.println("Fetching profile image from " + rootLocation.toString());
-
+    public boolean delete(String filename) {
         try {
-            if (rootLocation.toFile().exists()) {
-                Iterator<Path> iterator = Files.newDirectoryStream(rootLocation).iterator();
-
-                if (iterator.hasNext()) {
-                    imagePath = iterator.next();
-                }
-            }
-        } catch (IOException ie) {
-            ie.printStackTrace();
+            Path file = rootLocation.resolve(filename);
+            return Files.deleteIfExists(file);
+        } catch (IOException e) {
+            throw new RuntimeException("Error: " + e.getMessage());
         }
-
-        return imagePath;
     }
 }

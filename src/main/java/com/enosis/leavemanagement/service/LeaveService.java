@@ -1,16 +1,22 @@
 package com.enosis.leavemanagement.service;
 
 import com.enosis.leavemanagement.dto.LeaveApplicationDTO;
+import com.enosis.leavemanagement.dto.UserLeaveApplicationDTO;
 import com.enosis.leavemanagement.enums.ApplicationStatus;
 import com.enosis.leavemanagement.enums.Role;
 import com.enosis.leavemanagement.exceptions.FileSaveException;
 import com.enosis.leavemanagement.model.LeaveApplication;
 import com.enosis.leavemanagement.model.Users;
 import com.enosis.leavemanagement.repository.LeaveRepository;
+import jakarta.persistence.Transient;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -24,6 +30,41 @@ public class LeaveService {
     private final LeaveRepository leaveRepository;
     private final FileService fileService;
     private final UserService userService;
+    @Transactional
+    public String updateLeaveApplication(LeaveApplicationDTO leaveApplicationDTO, Long userId){
+        Optional<LeaveApplication> leaveApplicationOptional = leaveRepository.findById(leaveApplicationDTO.getId());
+        if(leaveApplicationOptional.isPresent()){
+            LeaveApplication leaveApplication = leaveApplicationOptional.get();
+
+            //file deletion here
+            if(leaveApplication.getFilePath() != null || !leaveApplication.getFilePath().equals("")){
+                fileService.delete(leaveApplication.getFilePath());
+            }
+
+            //save new file
+            String path = "";
+            try {
+                if(leaveApplicationDTO.getFile() != null) {
+                    path = fileService.saveFile(leaveApplicationDTO.getFile(), userId);
+                }
+            }catch(Exception e){
+                e.printStackTrace();
+                return e.getMessage();
+            }
+
+            //other fields update
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+            leaveApplication.setFromDate(LocalDateTime.parse(leaveApplicationDTO.getFromDate(), formatter));
+            leaveApplication.setToDate(LocalDateTime.parse(leaveApplicationDTO.getToDate(), formatter));
+            leaveApplication.setLeaveReason(leaveApplicationDTO.getLeaveReason());
+            leaveApplication.setApplicationStatus(ApplicationStatus.Pending);
+            leaveApplication.setLeaveType(leaveApplicationDTO.getLeaveType());
+            leaveApplication.setEmergencyContact(leaveApplicationDTO.getEmergencyContact());
+            leaveApplication.setUserId(userId);
+            leaveApplication.setFilePath(path);
+        }
+        return "Successfully updated";
+    }
 
     public String saveLeaveApplication(LeaveApplicationDTO leaveApplicationDTO, Long userId){
         String path = "";
@@ -62,9 +103,30 @@ public class LeaveService {
         }
     }
 
-    public List<LeaveApplication> getAllPendingLeaveRequests(String userEmail){
+    public LeaveApplication getById(Long id){
+        Optional<LeaveApplication> leaveApplicationOptional = leaveRepository.findById(id);
+        if(leaveApplicationOptional.isPresent()){
+            LeaveApplication leaveApplication =  leaveApplicationOptional.get();
+
+            //fetch file
+            if(leaveApplication.getFilePath() != null && !leaveApplication.getFilePath().equals("")){
+                Path imagePath = Paths.get("uploads/"+leaveApplication.getFilePath());
+                try {
+                    leaveApplication.setAttachment(Files.readAllBytes(imagePath));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+
+            return leaveApplication;
+        }
+        return new LeaveApplication();
+    }
+
+    public List<UserLeaveApplicationDTO> getAllPendingLeaveRequests(String userEmail){
         Optional<Users> usersOptional = userService.findByEmail(userEmail);
-        List<LeaveApplication> applicationList;
+        List<UserLeaveApplicationDTO> applicationList;
         if(usersOptional.isPresent()){
             Users users = usersOptional.get();
             if(users.getRole().equals(Role.Admin)){
@@ -78,9 +140,13 @@ public class LeaveService {
         return applicationList;
     }
 
-    public List<LeaveApplication> getAllApprovedLeaveRequests(){
-        List<LeaveApplication> applicationList = leaveRepository.findByApplicationStatusOrderByIdDesc(ApplicationStatus.Approved);
+    public List<UserLeaveApplicationDTO> getAllApprovedLeaveRequests(){
+        List<UserLeaveApplicationDTO> applicationList = leaveRepository.findByApplicationStatusOrderByIdDesc(ApplicationStatus.Approved);
         return applicationList;
+    }
+
+    public List<UserLeaveApplicationDTO> getApprovedListByName(String name){
+        return leaveRepository.findApprovedListByName(name, ApplicationStatus.Approved);
     }
 
     public void save(LeaveApplication leaveApplication){
@@ -100,4 +166,6 @@ public class LeaveService {
 
         return leaveApplication;
     }
+
+
 }

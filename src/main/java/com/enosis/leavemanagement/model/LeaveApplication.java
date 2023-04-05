@@ -45,4 +45,7 @@ public class LeaveApplication {
     @Enumerated(EnumType.STRING)
     @Column(name = "application_status")
     private ApplicationStatus applicationStatus;
+
+    @Transient
+    private byte[] attachment;
 }

@@ -3,6 +3,7 @@ package com.enosis.leavemanagement.controller;
 import com.enosis.leavemanagement.dto.LeaveApplicationDTO;
 import com.enosis.leavemanagement.dto.RestResponse;
 import com.enosis.leavemanagement.dto.UserDTO;
+import com.enosis.leavemanagement.dto.UserLeaveApplicationDTO;
 import com.enosis.leavemanagement.enums.ApplicationStatus;
 import com.enosis.leavemanagement.model.LeaveApplication;
 import com.enosis.leavemanagement.model.Users;
@@ -39,15 +40,33 @@ public class LeaveRestController {
         return ResponseEntity.ok(response);
     }
 
+    @PostMapping("/update")
+    public ResponseEntity<RestResponse> updateApplication(@ModelAttribute LeaveApplicationDTO leaveApplicationDTO, Authentication authentication){
+        Users users = (Users) authentication.getPrincipal();
+        leaveService.updateLeaveApplication(leaveApplicationDTO, users.getId());
+        RestResponse response = RestResponse.builder().message("leave request updated successfully").build();
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping("/pendingList")
-    public ResponseEntity<List<LeaveApplication>> getPendingList(Authentication authentication){
+    public ResponseEntity<List<UserLeaveApplicationDTO>> getPendingList(Authentication authentication){
         Users users = (Users) authentication.getPrincipal();
         return ResponseEntity.ok(leaveService.getAllPendingLeaveRequests(users.getEmail()));
     }
 
+    @GetMapping("/getById/{id}")
+    public ResponseEntity<LeaveApplication> getPendingList(@PathVariable Long id){
+        return ResponseEntity.ok(leaveService.getById(id));
+    }
+
     @GetMapping("/approvedList")
-    public ResponseEntity<List<LeaveApplication>> getApprovedList(){
+    public ResponseEntity<List<UserLeaveApplicationDTO>> getApprovedList(){
         return ResponseEntity.ok(leaveService.getAllApprovedLeaveRequests());
+    }
+
+    @GetMapping("/approvedListByName/{name}")
+    public ResponseEntity<List<UserLeaveApplicationDTO>> getApprovedListByName(@PathVariable String name){
+        return ResponseEntity.ok(leaveService.getApprovedListByName(name));
     }
 
     @PutMapping("/approve/{id}")

@@ -8,6 +8,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class RestResponse {
-    private String status;
+    private boolean status;
     private String message;
 }
