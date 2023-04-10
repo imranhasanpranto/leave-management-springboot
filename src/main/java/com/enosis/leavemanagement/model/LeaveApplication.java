@@ -29,6 +29,9 @@ public class LeaveApplication {
     @Column(name = "to_date", nullable = false)
     private LocalDateTime toDate;
 
+    @Column(name = "leave_count", nullable = false)
+    private Integer leaveCount;
+
     @Column(name = "leave_reason")
     private String leaveReason;
 

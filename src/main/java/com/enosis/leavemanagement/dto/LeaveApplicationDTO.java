@@ -20,4 +20,5 @@ public class LeaveApplicationDTO {
     private String emergencyContact;
     private MultipartFile file;
     private ApplicationStatus applicationStatus;
+    private Boolean isFileUpdated;
 }

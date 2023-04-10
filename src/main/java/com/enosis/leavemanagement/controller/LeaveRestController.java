@@ -2,28 +2,18 @@ package com.enosis.leavemanagement.controller;
 
 import com.enosis.leavemanagement.dto.LeaveApplicationDTO;
 import com.enosis.leavemanagement.dto.RestResponse;
-import com.enosis.leavemanagement.dto.UserDTO;
 import com.enosis.leavemanagement.dto.UserLeaveApplicationDTO;
 import com.enosis.leavemanagement.enums.ApplicationStatus;
+import com.enosis.leavemanagement.exceptions.FileSaveException;
 import com.enosis.leavemanagement.model.LeaveApplication;
 import com.enosis.leavemanagement.model.Users;
 import com.enosis.leavemanagement.service.LeaveService;
 import lombok.RequiredArgsConstructor;
-import org.apache.coyote.Response;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.security.Principal;
-import java.util.ArrayList;
+import java.time.LocalDate;
 import java.util.List;
 
 @CrossOrigin(origins = "http://localhost:4200")
@@ -33,15 +23,19 @@ import java.util.List;
 public class LeaveRestController {
     private final LeaveService leaveService;
     @PostMapping("/add")
-    public ResponseEntity<RestResponse> addApplication(@ModelAttribute LeaveApplicationDTO leaveApplicationDTO, Authentication authentication){
+    public ResponseEntity<RestResponse> addApplication(
+            @ModelAttribute LeaveApplicationDTO leaveApplicationDTO,
+            Authentication authentication)throws FileSaveException, IllegalArgumentException {
         Users users = (Users) authentication.getPrincipal();
         leaveService.saveLeaveApplication(leaveApplicationDTO, users.getId());
         RestResponse response = RestResponse.builder().message("leave request added successfully").build();
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/update")
-    public ResponseEntity<RestResponse> updateApplication(@ModelAttribute LeaveApplicationDTO leaveApplicationDTO, Authentication authentication){
+    @PutMapping("/update")
+    public ResponseEntity<RestResponse> updateApplication(
+            @ModelAttribute LeaveApplicationDTO leaveApplicationDTO,
+            Authentication authentication) throws FileSaveException, IllegalArgumentException {
         Users users = (Users) authentication.getPrincipal();
         leaveService.updateLeaveApplication(leaveApplicationDTO, users.getId());
         RestResponse response = RestResponse.builder().message("leave request updated successfully").build();
@@ -87,6 +81,25 @@ public class LeaveRestController {
     public ResponseEntity<RestResponse> cancelLeaveRequest(@PathVariable Long id){
         leaveService.updateRequestStatus(id, ApplicationStatus.Canceled);
         RestResponse response = RestResponse.builder().message("leave application has been canceled").build();
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/getAllLeaveDates/{id}")
+    public ResponseEntity<List<LocalDate>> getAllLeaveDates(@PathVariable Long id, Authentication authentication){
+        Users users = (Users) authentication.getPrincipal();
+        return ResponseEntity.ok(leaveService.getAllLeaveDates(users.getId(), id));
+    }
+
+    @GetMapping("/isAnnualLeaveCountExceeds/{fromDate}/{toDate}/{id}")
+    public ResponseEntity<RestResponse> getAnnualLeaveCountStatus(
+            @PathVariable Long fromDate,
+            @PathVariable Long toDate,
+            @PathVariable Long id,
+            Authentication authentication
+    ){
+        Users users = (Users) authentication.getPrincipal();
+        int balance = leaveService.getLeaveCountBalance(fromDate, toDate, users.getId(), id);
+        RestResponse response = RestResponse.builder().status(balance < 0).build();
         return ResponseEntity.ok(response);
     }
 }

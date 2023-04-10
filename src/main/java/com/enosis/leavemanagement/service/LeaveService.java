@@ -1,58 +1,63 @@
 package com.enosis.leavemanagement.service;
 
 import com.enosis.leavemanagement.dto.LeaveApplicationDTO;
+import com.enosis.leavemanagement.dto.LeaveDaysDTO;
 import com.enosis.leavemanagement.dto.UserLeaveApplicationDTO;
 import com.enosis.leavemanagement.enums.ApplicationStatus;
 import com.enosis.leavemanagement.enums.Role;
 import com.enosis.leavemanagement.exceptions.FileSaveException;
+import com.enosis.leavemanagement.interfaces.ProjectDateRange;
 import com.enosis.leavemanagement.model.LeaveApplication;
+import com.enosis.leavemanagement.model.UserLeaveCount;
 import com.enosis.leavemanagement.model.Users;
 import com.enosis.leavemanagement.repository.LeaveRepository;
-import jakarta.persistence.Transient;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.LocalDateTime;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class LeaveService {
     private final LeaveRepository leaveRepository;
     private final FileService fileService;
     private final UserService userService;
+    private final UserLeaveCountService userLeaveCountService;
+    private final UserLeaveDaysService userLeaveDaysService;
+
     @Transactional
-    public String updateLeaveApplication(LeaveApplicationDTO leaveApplicationDTO, Long userId){
+    public String updateLeaveApplication(LeaveApplicationDTO leaveApplicationDTO, Long userId) throws IllegalArgumentException, FileSaveException{
         Optional<LeaveApplication> leaveApplicationOptional = leaveRepository.findById(leaveApplicationDTO.getId());
         if(leaveApplicationOptional.isPresent()){
             LeaveApplication leaveApplication = leaveApplicationOptional.get();
 
-            //file deletion here
-            if(leaveApplication.getFilePath() != null || !leaveApplication.getFilePath().equals("")){
-                fileService.delete(leaveApplication.getFilePath());
+            //updating annual leave count
+            LeaveDaysDTO leaveDaysDTO = getLeaveCount(leaveApplication.getFromDate().toLocalDate(), leaveApplication.getToDate().toLocalDate(), userId, leaveApplication.getId());
+            UserLeaveCount balance = userLeaveCountService.getLeaveBalance(userId);
+            int currentBalance = balance.getValue() + leaveApplication.getLeaveCount() - leaveDaysDTO.getLeaveCount();
+            if(currentBalance < 0){
+                throw new IllegalArgumentException("Annual Leave Count Exceeded!");
+            }
+            userLeaveCountService.updateLeaveCountBalance(userId, currentBalance);
+
+            String path = leaveApplication.getFilePath();
+            if(leaveApplicationDTO.getIsFileUpdated()){
+                path = fileService.fileUpdate(leaveApplicationDTO, leaveApplication.getFilePath(), userId);
             }
 
-            //save new file
-            String path = "";
-            try {
-                if(leaveApplicationDTO.getFile() != null) {
-                    path = fileService.saveFile(leaveApplicationDTO.getFile(), userId);
-                }
-            }catch(Exception e){
-                e.printStackTrace();
-                return e.getMessage();
-            }
-
-            //other fields update
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
             leaveApplication.setFromDate(LocalDateTime.parse(leaveApplicationDTO.getFromDate(), formatter));
             leaveApplication.setToDate(LocalDateTime.parse(leaveApplicationDTO.getToDate(), formatter));
@@ -62,38 +67,76 @@ public class LeaveService {
             leaveApplication.setEmergencyContact(leaveApplicationDTO.getEmergencyContact());
             leaveApplication.setUserId(userId);
             leaveApplication.setFilePath(path);
+            //int leaveCount = getLeaveCount(leaveApplication.getFromDate().toLocalDate(), leaveApplication.getToDate().toLocalDate(), userId, leaveApplication.getId());
+            leaveApplication.setLeaveCount(leaveDaysDTO.getLeaveCount());
+
+            userLeaveDaysService.deleteByApplicationId(leaveApplication.getId());
+            userLeaveDaysService.saveAllByDateList(leaveDaysDTO.getLeaveDays(), leaveApplication.getId());
         }
         return "Successfully updated";
     }
 
-    public String saveLeaveApplication(LeaveApplicationDTO leaveApplicationDTO, Long userId){
-        String path = "";
-        try {
-            if(leaveApplicationDTO.getFile() != null) {
-                path = fileService.saveFile(leaveApplicationDTO.getFile(), userId);
-            }
-        } catch (FileSaveException e) {
-            e.printStackTrace();
-            return e.getMessage();
-        }catch (RuntimeException r){
-            r.printStackTrace();
-            return r.getMessage();
-        }catch(Exception e){
-            e.printStackTrace();
-            return e.getMessage();
-        }
+    @Transactional
+    public String saveLeaveApplication(LeaveApplicationDTO leaveApplicationDTO, Long userId) throws IllegalArgumentException, FileSaveException{
 
         LeaveApplication leaveApplication = convertDtoToEntity(leaveApplicationDTO);
+        //updating annual leave count
+        LeaveDaysDTO leaveDaysDTO = getLeaveCount(leaveApplication.getFromDate().toLocalDate(), leaveApplication.getToDate().toLocalDate(), userId, -1l);
+        UserLeaveCount balance = userLeaveCountService.getLeaveBalance(userId);
+        int currentBalance = balance.getValue() - leaveDaysDTO.getLeaveCount();
+        if(currentBalance < 0){
+            throw new IllegalArgumentException("Annual Leave Count Exceeded!");
+        }
+
+        String path = "";
+        if(leaveApplicationDTO.getFile() != null) {
+            path = fileService.saveFile(leaveApplicationDTO.getFile(), userId);
+        }
+
+        userLeaveCountService.updateLeaveCountBalance(userId, currentBalance);
+
+        leaveApplication.setLeaveCount(leaveDaysDTO.getLeaveCount());
         leaveApplication.setFilePath(path);
         leaveApplication.setApplicationStatus(ApplicationStatus.Pending);
         leaveApplication.setUserId(userId);
-        save(leaveApplication);
+        leaveApplication = leaveRepository.save(leaveApplication);
 
-        //leave count
-        long leaveCount = ChronoUnit.DAYS.between(leaveApplication.getFromDate(), leaveApplication.getToDate());
-        System.out.println("leave count: "+ leaveCount);
+        userLeaveDaysService.saveAllByDateList(leaveDaysDTO.getLeaveDays(), leaveApplication.getId());
+
         return "Successfully saved";
     }
+
+    public LeaveDaysDTO getLeaveCount(LocalDate fromDate, LocalDate toDate, Long userId, Long id){
+
+        List<LocalDate> localDateList = new ArrayList<>();
+        List<LocalDate> blockedDates = getAllLeaveDates(userId, id);
+        Set<Long> blockedDateSet = new HashSet<>();
+        for(LocalDate date: blockedDates){
+            blockedDateSet.add(date.toEpochDay());
+        }
+
+        LocalDate weekday = fromDate;
+        int leaveDays = 1;
+        while (weekday.isBefore(toDate)) {
+            if(!blockedDateSet.contains(weekday.toEpochDay())){
+                leaveDays++;
+                localDateList.add(weekday);
+            }
+            if (weekday.getDayOfWeek() == DayOfWeek.FRIDAY)
+                weekday = weekday.plusDays(3);
+            else
+                weekday = weekday.plusDays(1);
+        }
+        localDateList.add(toDate);
+        log.info("total leave count:"+ leaveDays);
+
+        LeaveDaysDTO leaveDaysDTO = LeaveDaysDTO.builder()
+                .leaveDays(localDateList)
+                .leaveCount(leaveDays)
+                .build();
+        return leaveDaysDTO;
+    }
+
     @Transactional
     public void updateRequestStatus(Long id, ApplicationStatus status){
         Optional<LeaveApplication> leaveApplicationOptional = leaveRepository.findById(id);
@@ -149,10 +192,6 @@ public class LeaveService {
         return leaveRepository.findApprovedListByName(name, ApplicationStatus.Approved);
     }
 
-    public void save(LeaveApplication leaveApplication){
-        leaveRepository.save(leaveApplication);
-    }
-
     public LeaveApplication convertDtoToEntity(LeaveApplicationDTO leaveApplicationDTO){
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         LeaveApplication leaveApplication = LeaveApplication.builder()
@@ -165,6 +204,35 @@ public class LeaveService {
                 .build();
 
         return leaveApplication;
+    }
+
+    public List<LocalDate> getAllLeaveDates(Long userId, Long id){
+        List<ProjectDateRange> leaveDatesRange = leaveRepository.findByUserIdAndIdNotAndApplicationStatusIn(
+                userId,
+                id,
+                List.of(ApplicationStatus.Pending, ApplicationStatus.Approved));
+
+        List<LocalDate> list = new ArrayList<>();
+        for(ProjectDateRange range: leaveDatesRange) {
+            list.addAll(range.getFromDate().toLocalDate().datesUntil(range.getToDate().toLocalDate())
+                    .collect(Collectors.toList()));
+            list.add(range.getToDate().toLocalDate());
+        }
+        return list;
+    }
+
+    public int getLeaveCountBalance(
+            Long fromDateMil,
+            Long toDateMil,
+            Long userId,
+            Long id
+    ){
+        LocalDate fromDate = Instant.ofEpochMilli(fromDateMil).atZone(ZoneId.of("UTC")).toLocalDate();
+        LocalDate toDate = Instant.ofEpochMilli(toDateMil).atZone(ZoneId.of("UTC")).toLocalDate();
+
+        LeaveDaysDTO leaveDaysDTO = getLeaveCount(fromDate, toDate, userId, id);
+        UserLeaveCount balance = userLeaveCountService.getLeaveBalance(userId);
+        return balance.getValue() - leaveDaysDTO.getLeaveCount();
     }
 
 

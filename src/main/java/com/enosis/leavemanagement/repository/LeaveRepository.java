@@ -3,6 +3,7 @@ package com.enosis.leavemanagement.repository;
 import com.enosis.leavemanagement.dto.LeaveApplicationDTO;
 import com.enosis.leavemanagement.dto.UserLeaveApplicationDTO;
 import com.enosis.leavemanagement.enums.ApplicationStatus;
+import com.enosis.leavemanagement.interfaces.ProjectDateRange;
 import com.enosis.leavemanagement.model.LeaveApplication;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -28,4 +29,5 @@ public interface LeaveRepository extends JpaRepository<LeaveApplication, Long> {
     @Query(value =  baseSqlQuery + " WHERE users.name LIKE CONCAT('%', ?1, '%') AND app.applicationStatus = ?2 ")
     public List<UserLeaveApplicationDTO> findApprovedListByName(String name, ApplicationStatus status);
 
+    public List<ProjectDateRange> findByUserIdAndIdNotAndApplicationStatusIn(Long userId, Long id, List<ApplicationStatus> statusList);
 }

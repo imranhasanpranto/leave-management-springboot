@@ -1,4 +1,4 @@
-package com.enosis.leavemanagement.security;
+package com.enosis.leavemanagement.service;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;

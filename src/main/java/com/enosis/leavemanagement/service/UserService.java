@@ -16,11 +16,6 @@ import java.util.Optional;
 public class UserService {
     private final UserRepository userRepository;
 
-    @Transactional
-    public void save(Users users){
-        userRepository.save(users);
-    }
-
     public List<UserDTO> getAllUsers(){
         List<UserDTO> userDTOList = userRepository.findAll().stream()
                 .map(user -> convertEntityToDto(user))
@@ -32,24 +27,14 @@ public class UserService {
         return userRepository.findByEmail(email);
     }
 
-    public Users convertDtoTOEntity(UserDTO userDTO){
-        Users users = Users.builder()
-                .id(userDTO.getId())
-                .name(userDTO.getName())
-                .email(userDTO.getEmail())
-                .password(userDTO.getPassword())
-                .role(userDTO.getRole())
-                .build();
-        return users;
-    }
-
     public UserDTO convertEntityToDto(Users user){
-        UserDTO userDTO = new UserDTO();
-        userDTO.setId(user.getId());
-        userDTO.setName(user.getName());
-        userDTO.setEmail(user.getEmail());
-        userDTO.setPassword(user.getPassword());
-        userDTO.setRole(user.getRole());
+        UserDTO userDTO = UserDTO.builder()
+                .id(user.getId())
+                .name(user.getName())
+                .email(user.getEmail())
+                .role(user.getRole())
+                .build();
+
         return userDTO;
     }
 }
