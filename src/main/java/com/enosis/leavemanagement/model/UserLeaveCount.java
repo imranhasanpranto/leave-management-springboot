@@ -20,9 +20,9 @@ public class UserLeaveCount {
     @Column(name = "user_id", nullable = false)
     private Long userId;
 
-    @Column(name = "year", nullable = false)
+    @Column(name = "`year`", nullable = false)
     private Integer year;
 
-    @Column(name = "value", nullable = false)
+    @Column(name = "`value`", nullable = false)
     private Integer value;
 }

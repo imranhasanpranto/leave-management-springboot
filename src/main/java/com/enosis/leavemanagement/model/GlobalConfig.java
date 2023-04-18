@@ -20,10 +20,10 @@ public class GlobalConfig {
     private Long id;
 
     @NotBlank(message = "configName is mandatory")
-    @Column(name = "name", length = 50, nullable = false, unique = true)
+    @Column(name = "config_name", length = 50, nullable = false, unique = true)
     private String configName;
 
     @NotNull(message = "configValue is mandatory")
-    @Column(name = "value", nullable = false)
+    @Column(name = "config_value", nullable = false)
     private Integer configValue;
 }

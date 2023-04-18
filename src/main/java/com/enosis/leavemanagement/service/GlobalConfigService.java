@@ -7,6 +7,8 @@ import com.enosis.leavemanagement.exceptions.UnAuthorizedAccessException;
 import com.enosis.leavemanagement.model.GlobalConfig;
 import com.enosis.leavemanagement.repository.GlobalConfigRepository;
 import jakarta.transaction.Transactional;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -26,14 +28,14 @@ public class GlobalConfigService {
         return null;
     }
     @Transactional
-    public String updateConfig(GlobalConfig globalConfig, Role role) throws NotFoundException, UnAuthorizedAccessException {
+    public GlobalConfig updateConfig(GlobalConfig globalConfig, Role role) throws NotFoundException, UnAuthorizedAccessException {
         if(role.equals(Role.Admin)){
             GlobalConfig config = findByName(globalConfig.getConfigName());
             if(config == null){
                 throw new NotFoundException(globalConfig.getConfigName()+" Not Found.");
             }
             config.setConfigValue(globalConfig.getConfigValue());
-            return "updated successfully";
+            return config;
 
         }else{
             throw new UnAuthorizedAccessException("UnAuthorized Access");
@@ -41,7 +43,7 @@ public class GlobalConfigService {
     }
 
     @Transactional
-    public String addConfig(GlobalConfig globalConfig, Role role) throws AlreadyExistsException, UnAuthorizedAccessException {
+    public GlobalConfig addConfig(GlobalConfig globalConfig, Role role) throws AlreadyExistsException, UnAuthorizedAccessException {
         if(role.equals(Role.Admin)){
             GlobalConfig config = findByName(globalConfig.getConfigName());
             if(config == null){
@@ -49,9 +51,9 @@ public class GlobalConfigService {
                         .configName(globalConfig.getConfigName())
                         .configValue(globalConfig.getConfigValue())
                         .build();
-                globalConfigRepository.save(config);
+                config = globalConfigRepository.save(config);
 
-                return "saved successfully";
+                return config;
             }else{
                 throw new AlreadyExistsException(globalConfig.getConfigName()+" Already Exists.");
             }

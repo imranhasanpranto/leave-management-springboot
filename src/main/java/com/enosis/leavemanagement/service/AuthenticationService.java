@@ -7,11 +7,13 @@ import com.enosis.leavemanagement.enums.Role;
 import com.enosis.leavemanagement.exceptions.AlreadyExistsException;
 import com.enosis.leavemanagement.model.Users;
 import com.enosis.leavemanagement.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -29,9 +31,10 @@ public class AuthenticationService {
     private final AuthenticationManager authenticationManager;
     private final UserService userService;
 
+    @Transactional
     public AuthenticationResponse register(UserDTO userDTO) throws AlreadyExistsException{
         if(userService.findByEmail(userDTO.getEmail()).isPresent()){
-            throw new AlreadyExistsException("This username is already taken!");
+            throw new AlreadyExistsException("This email is already taken!");
         }
         Users user = convertUserDtoToEntity(userDTO);
         user = userRepository.save(user);
@@ -51,7 +54,7 @@ public class AuthenticationService {
     }
 
     public AuthenticationResponse authenticate(AuthenticationRequest request){
-        authenticationManager.authenticate(
+        Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.getEmail(),
                         request.getPassword()

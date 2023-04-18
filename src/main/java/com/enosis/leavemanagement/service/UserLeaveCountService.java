@@ -30,9 +30,10 @@ public class UserLeaveCountService {
     }
 
     @Transactional
-    public void updateLeaveCountBalance(Long userId, int balance) throws NotFoundException{
+    public UserLeaveCount updateLeaveCountBalance(Long userId, int balance) throws NotFoundException{
         UserLeaveCount leaveCount = getLeaveBalance(userId);
         leaveCount.setValue(balance);
+        return leaveCount;
     }
 
     public UserLeaveCount setUserAnnualLeaveCount(Long userId, int year) throws NotFoundException {

@@ -26,7 +26,8 @@ public class GlobalConfigController {
             @ModelAttribute GlobalConfig globalConfig,
             Authentication authentication)throws NotFoundException, UnAuthorizedAccessException{
         Users users = (Users) authentication.getPrincipal();
-        String message = globalConfigService.updateConfig(globalConfig, users.getRole());
+        GlobalConfig config = globalConfigService.updateConfig(globalConfig, users.getRole());
+        String message = "updated successfully";
         RestResponse response = RestResponse.builder()
                 .message(message)
                 .status(true)
@@ -41,7 +42,9 @@ public class GlobalConfigController {
             Authentication authentication
     )throws AlreadyExistsException, UnAuthorizedAccessException{
         Users users = (Users) authentication.getPrincipal();
-        String message = globalConfigService.addConfig(globalConfig, users.getRole());
+
+        GlobalConfig config = globalConfigService.addConfig(globalConfig, users.getRole());
+        String message = "saved successfully";
         RestResponse response = RestResponse.builder()
                 .message(message)
                 .status(true)
