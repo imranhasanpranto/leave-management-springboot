@@ -16,10 +16,7 @@ import java.nio.file.Paths;
 public class FileService {
     private final Path rootLocation = Paths.get("uploads");
 
-    private Path getPath(Long employeeId, String fileName){
-        Path path = this.rootLocation.resolve(fileName + String.valueOf(employeeId));
-        return path;
-    }
+
     public String saveFile(MultipartFile file, Long userId) throws FileSaveException {
         String fileName;
         try {

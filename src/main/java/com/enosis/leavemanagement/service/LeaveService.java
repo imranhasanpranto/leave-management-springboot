@@ -73,7 +73,7 @@ public class LeaveService {
             userLeaveDaysService.deleteByApplicationId(leaveApplication.getId());
             userLeaveDaysService.saveAllByDateList(leaveDaysDTO.getLeaveDays(), leaveApplication.getId());
         }
-        return "Successfully updated";
+        return "Leave request updated successfully";
     }
 
     @Transactional
@@ -103,7 +103,7 @@ public class LeaveService {
 
         userLeaveDaysService.saveAllByDateList(leaveDaysDTO.getLeaveDays(), leaveApplication.getId());
 
-        return "Successfully saved";
+        return "Leave request added successfully";
     }
 
     public LeaveDaysDTO getLeaveCount(LocalDate fromDate, LocalDate toDate, Long userId, Long id){
@@ -116,7 +116,7 @@ public class LeaveService {
         }
 
         LocalDate weekday = fromDate;
-        int leaveDays = 1;
+        int leaveDays = 0;
         while (weekday.isBefore(toDate)) {
             if(!blockedDateSet.contains(weekday.toEpochDay())){
                 leaveDays++;
@@ -127,7 +127,11 @@ public class LeaveService {
             else
                 weekday = weekday.plusDays(1);
         }
-        localDateList.add(toDate);
+        if(!blockedDateSet.contains(toDate.toEpochDay())){
+            leaveDays++;
+            localDateList.add(toDate);
+        }
+        //localDateList.add(toDate);
         log.info("total leave count:"+ leaveDays);
 
         LeaveDaysDTO leaveDaysDTO = LeaveDaysDTO.builder()
@@ -138,13 +142,19 @@ public class LeaveService {
     }
 
     @Transactional
-    public void updateRequestStatus(Long id, ApplicationStatus status){
+    public LeaveApplication updateRequestStatus(Long id, ApplicationStatus status){
         Optional<LeaveApplication> leaveApplicationOptional = leaveRepository.findById(id);
         if(leaveApplicationOptional.isPresent()){
             LeaveApplication application = leaveApplicationOptional.get();
             application.setApplicationStatus(status);
+            if(status.equals(ApplicationStatus.Rejected) || status.equals(ApplicationStatus.Canceled)){
+                userLeaveCountService.updateLeaveCountAfterDeleteApplication(application.getUserId(), application.getLeaveCount());
+            }
+            return application;
         }
+        return null;
     }
+
 
     public LeaveApplication getById(Long id){
         Optional<LeaveApplication> leaveApplicationOptional = leaveRepository.findById(id);
@@ -210,7 +220,8 @@ public class LeaveService {
         List<ProjectDateRange> leaveDatesRange = leaveRepository.findByUserIdAndIdNotAndApplicationStatusIn(
                 userId,
                 id,
-                List.of(ApplicationStatus.Pending, ApplicationStatus.Approved));
+                List.of(ApplicationStatus.Pending, ApplicationStatus.Approved)
+        );
 
         List<LocalDate> list = new ArrayList<>();
         for(ProjectDateRange range: leaveDatesRange) {

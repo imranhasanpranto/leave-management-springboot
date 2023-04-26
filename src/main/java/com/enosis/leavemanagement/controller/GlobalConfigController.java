@@ -15,7 +15,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
-@CrossOrigin(origins = "http://localhost:4200")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/config")
@@ -55,7 +54,7 @@ public class GlobalConfigController {
 
     @GetMapping("/getByName/{name}")
     public ResponseEntity<GlobalConfig> getByName(@PathVariable String name) {
-        GlobalConfig globalConfig = globalConfig = globalConfigService.findByName(name);;
+        GlobalConfig globalConfig = globalConfigService.findByName(name);;
         if(globalConfig == null){
             throw new NotFoundException(
                     name+" Not Found."

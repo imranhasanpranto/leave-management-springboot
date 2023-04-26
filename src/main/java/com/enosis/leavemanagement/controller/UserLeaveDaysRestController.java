@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@CrossOrigin(origins = "http://localhost:4200")
 @RestController
 @RequestMapping("/api/leave-days")
 @RequiredArgsConstructor
@@ -20,7 +19,7 @@ public class UserLeaveDaysRestController {
     private final UserLeaveDaysService userLeaveDaysService;
 
     @GetMapping("/getLeaveDays/{id}")
-    public ResponseEntity<List<UserLeaveDays>> getUserCurrentLeaveBalance(@PathVariable Long id) throws NotFoundException {
+    public ResponseEntity<List<UserLeaveDays>> getUserCurrentLeaveBalance(@PathVariable Long id) {
         List<UserLeaveDays> userLeaveDays = userLeaveDaysService.findByApplicationId(id);
         return ResponseEntity.ok(userLeaveDays);
     }

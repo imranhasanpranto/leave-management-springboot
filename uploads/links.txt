@@ -1,2 +1,0 @@
-https://www.theserverside.com/blog/Coffee-Talk-Java-News-Stories-and-Opinions/file-upload-Spring-Boot-Ajax-example#:~:text=Spring%20Boot%20file%20uploader&text=Create%20a%20Spring%20%40Controller%20class,Spring%20file%20upload%20was%20successful.
-https://medium.com/linkit-intecs/file-upload-download-as-multipart-file-using-angular-6-spring-boot-7ad06d841c21

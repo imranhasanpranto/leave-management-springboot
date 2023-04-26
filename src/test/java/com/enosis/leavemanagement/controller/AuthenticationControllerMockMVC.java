@@ -3,6 +3,8 @@ package com.enosis.leavemanagement.controller;
 import com.enosis.leavemanagement.dto.AuthenticationRequest;
 import com.enosis.leavemanagement.dto.AuthenticationResponse;
 import com.enosis.leavemanagement.dto.UserDTO;
+import com.enosis.leavemanagement.exceptions.AlreadyExistsException;
+import com.enosis.leavemanagement.service.ApiExceptionHandler;
 import com.enosis.leavemanagement.service.AuthenticationService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -21,6 +23,8 @@ import org.springframework.test.web.servlet.MockMvcBuilder;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -38,18 +42,25 @@ public class AuthenticationControllerMockMVC {
     @InjectMocks
     AuthenticationController authenticationController;
 
+    UserDTO userDTO;
+
     @BeforeEach
     public void setUp(){
-        mockMvc = MockMvcBuilders.standaloneSetup(authenticationController).build();
-    }
+        mockMvc = MockMvcBuilders
+                .standaloneSetup(authenticationController)
+                .setControllerAdvice(new ApiExceptionHandler())
+                .build();
 
-    @Test
-    void register() throws Exception {
-        UserDTO userDTO = UserDTO.builder()
+        userDTO = UserDTO.builder()
                 .name("Imran")
                 .email("xy@gmail.com")
                 .password("12345")
                 .build();
+    }
+
+    @Test
+    void register() throws Exception {
+
 
         AuthenticationResponse authenticationResponse = AuthenticationResponse.builder()
                 .token("xyz")
@@ -92,7 +103,17 @@ public class AuthenticationControllerMockMVC {
     }
 
     @Test
-    void testAlreadyExistEmailException(){
+    void testAlreadyExistEmailException() throws Exception {
+        when(authenticationService.register(userDTO)).thenThrow(new AlreadyExistsException("This email is already taken!"));
+
+        ObjectMapper mapper = new ObjectMapper();
+
+        this.mockMvc.perform(post("/api/auth/register")
+                        .content(mapper.writeValueAsString(userDTO))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isConflict())
+                .andExpect(result -> assertTrue(result.getResolvedException() instanceof AlreadyExistsException))
+                .andExpect(result -> assertEquals("This email is already taken!", result.getResolvedException().getMessage()));
 
     }
 

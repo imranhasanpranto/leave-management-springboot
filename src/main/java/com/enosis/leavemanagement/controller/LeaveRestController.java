@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 import java.util.List;
 
-@CrossOrigin(origins = "http://localhost:4200")
 @RestController
 @RequestMapping("/api/leave/application")
 @RequiredArgsConstructor
@@ -27,8 +26,8 @@ public class LeaveRestController {
             @ModelAttribute LeaveApplicationDTO leaveApplicationDTO,
             Authentication authentication)throws FileSaveException, IllegalArgumentException {
         Users users = (Users) authentication.getPrincipal();
-        leaveService.saveLeaveApplication(leaveApplicationDTO, users.getId());
-        RestResponse response = RestResponse.builder().message("leave request added successfully").build();
+        String message = leaveService.saveLeaveApplication(leaveApplicationDTO, users.getId());
+        RestResponse response = RestResponse.builder().message(message).build();
         return ResponseEntity.ok(response);
     }
 
@@ -37,8 +36,8 @@ public class LeaveRestController {
             @ModelAttribute LeaveApplicationDTO leaveApplicationDTO,
             Authentication authentication) throws FileSaveException, IllegalArgumentException {
         Users users = (Users) authentication.getPrincipal();
-        leaveService.updateLeaveApplication(leaveApplicationDTO, users.getId());
-        RestResponse response = RestResponse.builder().message("leave request updated successfully").build();
+        String message = leaveService.updateLeaveApplication(leaveApplicationDTO, users.getId());
+        RestResponse response = RestResponse.builder().message(message).build();
         return ResponseEntity.ok(response);
     }
 
@@ -49,7 +48,7 @@ public class LeaveRestController {
     }
 
     @GetMapping("/getById/{id}")
-    public ResponseEntity<LeaveApplication> getPendingList(@PathVariable Long id){
+    public ResponseEntity<LeaveApplication> getById(@PathVariable Long id){
         return ResponseEntity.ok(leaveService.getById(id));
     }
 
@@ -66,21 +65,21 @@ public class LeaveRestController {
     @PutMapping("/approve/{id}")
     public ResponseEntity<RestResponse> approveLeaveRequest(@PathVariable Long id){
         leaveService.updateRequestStatus(id, ApplicationStatus.Approved);
-        RestResponse response = RestResponse.builder().message("leave application has been approved").build();
+        RestResponse response = RestResponse.builder().message("Leave application has been approved").build();
         return ResponseEntity.ok(response);
     }
 
     @PutMapping("/reject/{id}")
     public ResponseEntity<RestResponse> rejectLeaveRequest(@PathVariable Long id){
         leaveService.updateRequestStatus(id, ApplicationStatus.Rejected);
-        RestResponse response = RestResponse.builder().message("leave application has been rejected").build();
+        RestResponse response = RestResponse.builder().message("Leave application has been rejected").build();
         return ResponseEntity.ok(response);
     }
 
     @PutMapping("/cancel/{id}")
     public ResponseEntity<RestResponse> cancelLeaveRequest(@PathVariable Long id){
         leaveService.updateRequestStatus(id, ApplicationStatus.Canceled);
-        RestResponse response = RestResponse.builder().message("leave application has been canceled").build();
+        RestResponse response = RestResponse.builder().message("Leave application has been canceled").build();
         return ResponseEntity.ok(response);
     }
 

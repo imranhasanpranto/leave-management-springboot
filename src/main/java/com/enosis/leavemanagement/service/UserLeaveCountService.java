@@ -36,6 +36,13 @@ public class UserLeaveCountService {
         return leaveCount;
     }
 
+    @Transactional
+    public void updateLeaveCountAfterDeleteApplication(Long userId, int count){
+        UserLeaveCount currentBalance = getLeaveBalance(userId);
+        int balance = currentBalance.getValue()+count;
+        updateLeaveCountBalance(userId, balance);
+    }
+
     public UserLeaveCount setUserAnnualLeaveCount(Long userId, int year) throws NotFoundException {
         GlobalConfig globalConfig = globalConfigService.findByName(ANNUAL_LEAVE_COUNT);
         if(globalConfig == null){
