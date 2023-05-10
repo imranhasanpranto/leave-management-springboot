@@ -9,6 +9,7 @@ import com.enosis.leavemanagement.model.LeaveApplication;
 import com.enosis.leavemanagement.model.Users;
 import com.enosis.leavemanagement.service.LeaveService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -19,6 +20,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/leave/application")
 @RequiredArgsConstructor
+@Slf4j
 public class LeaveRestController {
     private final LeaveService leaveService;
     @PostMapping("/add")
@@ -26,6 +28,7 @@ public class LeaveRestController {
             @ModelAttribute LeaveApplicationDTO leaveApplicationDTO,
             Authentication authentication)throws FileSaveException, IllegalArgumentException {
         Users users = (Users) authentication.getPrincipal();
+        System.out.println(leaveApplicationDTO);
         String message = leaveService.saveLeaveApplication(leaveApplicationDTO, users.getId());
         RestResponse response = RestResponse.builder().message(message).build();
         return ResponseEntity.ok(response);
