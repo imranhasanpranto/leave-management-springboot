@@ -37,33 +37,4 @@ public class FIleRestController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
-
-    @DeleteMapping("/delete/{id}/{fileName}")
-    public ResponseEntity<RestResponse> deleteFile(@PathVariable Long id, @PathVariable String fileName) {
-        String message = "";
-        String path = id+"/"+fileName;
-        try {
-            boolean existed = fileService.delete(path);
-
-            if (existed) {
-                RestResponse response = RestResponse.builder()
-                        .message("Delete the file successfully: " + fileName)
-                        .status(true)
-                        .build();
-                return ResponseEntity.ok(response);
-            }
-
-            RestResponse response = RestResponse.builder()
-                    .message("File does not exist")
-                    .status(true)
-                    .build();
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            RestResponse response = RestResponse.builder()
-                    .message("Could not delete the file: " + fileName + ". Error: " + e.getMessage())
-                    .status(false)
-                    .build();
-            return ResponseEntity.ok(response);
-        }
-    }
 }
