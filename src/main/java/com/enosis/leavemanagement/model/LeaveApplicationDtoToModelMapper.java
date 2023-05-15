@@ -1,6 +1,8 @@
 package com.enosis.leavemanagement.model;
 
 import com.enosis.leavemanagement.dto.LeaveApplicationDTO;
+import com.enosis.leavemanagement.enums.ApplicationStatus;
+import jakarta.persistence.criteria.CriteriaBuilder;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -17,5 +19,19 @@ public class LeaveApplicationDtoToModelMapper {
                 .applicationStatus(leaveApplicationDTO.getApplicationStatus())
                 .emergencyContact(leaveApplicationDTO.getEmergencyContact())
                 .build();
+    }
+
+    public void reMapDtoToModel(
+            LeaveApplicationDTO leaveApplicationDTO,
+            LeaveApplication leaveApplication,
+            Integer leaveCount
+    ){
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        leaveApplication.setFromDate(LocalDateTime.parse(leaveApplicationDTO.getFromDate(), formatter));
+        leaveApplication.setToDate(LocalDateTime.parse(leaveApplicationDTO.getToDate(), formatter));
+        leaveApplication.setLeaveReason(leaveApplicationDTO.getLeaveReason());
+        leaveApplication.setLeaveType(leaveApplicationDTO.getLeaveType());
+        leaveApplication.setEmergencyContact(leaveApplicationDTO.getEmergencyContact());
+        leaveApplication.setLeaveCount(leaveCount);
     }
 }
