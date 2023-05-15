@@ -54,7 +54,8 @@ public class LeaveService {
             userLeaveCountService.updateLeaveCountBalance(userId, currentBalance);
 
             String path = leaveApplication.getFilePath();
-            if(leaveApplicationDTO.getIsFileUpdated()){
+            Boolean isFileUpdated = leaveApplicationDTO.getIsFileUpdated();
+            if(Boolean.TRUE.equals(isFileUpdated)){
                 path = fileService.fileUpdate(leaveApplicationDTO, leaveApplication.getFilePath(), userId);
             }
 
@@ -67,7 +68,6 @@ public class LeaveService {
             leaveApplication.setEmergencyContact(leaveApplicationDTO.getEmergencyContact());
             leaveApplication.setUserId(userId);
             leaveApplication.setFilePath(path);
-            //int leaveCount = getLeaveCount(leaveApplication.getFromDate().toLocalDate(), leaveApplication.getToDate().toLocalDate(), userId, leaveApplication.getId());
             leaveApplication.setLeaveCount(leaveDaysDTO.getLeaveCount());
 
             userLeaveDaysService.deleteByApplicationId(leaveApplication.getId());
@@ -131,14 +131,12 @@ public class LeaveService {
             leaveDays++;
             localDateList.add(toDate);
         }
-        //localDateList.add(toDate);
         log.info("total leave count:"+ leaveDays);
 
-        LeaveDaysDTO leaveDaysDTO = LeaveDaysDTO.builder()
+        return LeaveDaysDTO.builder()
                 .leaveDays(localDateList)
                 .leaveCount(leaveDays)
                 .build();
-        return leaveDaysDTO;
     }
 
     @Transactional
@@ -194,8 +192,7 @@ public class LeaveService {
     }
 
     public List<UserLeaveApplicationDTO> getAllApprovedLeaveRequests(){
-        List<UserLeaveApplicationDTO> applicationList = leaveRepository.findByApplicationStatusOrderByIdDesc(ApplicationStatus.Approved);
-        return applicationList;
+        return leaveRepository.findByApplicationStatusOrderByIdDesc(ApplicationStatus.Approved);
     }
 
     public List<UserLeaveApplicationDTO> getApprovedListByName(String name){
@@ -204,7 +201,8 @@ public class LeaveService {
 
     public LeaveApplication convertDtoToEntity(LeaveApplicationDTO leaveApplicationDTO){
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        LeaveApplication leaveApplication = LeaveApplication.builder()
+
+        return LeaveApplication.builder()
                 .fromDate(LocalDateTime.parse(leaveApplicationDTO.getFromDate(), formatter))
                 .toDate(LocalDateTime.parse(leaveApplicationDTO.getToDate(), formatter))
                 .leaveReason(leaveApplicationDTO.getLeaveReason())
@@ -212,8 +210,6 @@ public class LeaveService {
                 .applicationStatus(leaveApplicationDTO.getApplicationStatus())
                 .emergencyContact(leaveApplicationDTO.getEmergencyContact())
                 .build();
-
-        return leaveApplication;
     }
 
     public List<LocalDate> getAllLeaveDates(Long userId, Long id){
@@ -226,7 +222,7 @@ public class LeaveService {
         List<LocalDate> list = new ArrayList<>();
         for(ProjectDateRange range: leaveDatesRange) {
             list.addAll(range.getFromDate().toLocalDate().datesUntil(range.getToDate().toLocalDate())
-                    .collect(Collectors.toList()));
+                    .toList());
             list.add(range.getToDate().toLocalDate());
         }
         return list;

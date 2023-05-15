@@ -9,8 +9,6 @@ import com.enosis.leavemanagement.model.UserLeaveCount;
 import com.enosis.leavemanagement.repository.GlobalConfigRepository;
 import com.enosis.leavemanagement.repository.UserLeaveCountRepository;
 import jakarta.transaction.Transactional;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

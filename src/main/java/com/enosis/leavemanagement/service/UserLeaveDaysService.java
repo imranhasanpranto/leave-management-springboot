@@ -1,6 +1,5 @@
 package com.enosis.leavemanagement.service;
 
-import com.enosis.leavemanagement.model.UserLeaveCount;
 import com.enosis.leavemanagement.model.UserLeaveDays;
 import com.enosis.leavemanagement.repository.UserLeaveDaysRepository;
 import jakarta.transaction.Transactional;
@@ -9,7 +8,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -26,7 +24,7 @@ public class UserLeaveDaysService {
         List<UserLeaveDays> userLeaveDaysList = findByApplicationId(applicationId);
         List<Long> ids = userLeaveDaysList.stream()
                 .map(ob -> ob.getId())
-                .collect(Collectors.toList());
+                .toList();
 
         deleteByIds(ids);
     }
@@ -36,19 +34,17 @@ public class UserLeaveDaysService {
     }
 
     public UserLeaveDays createLeaveDaysEntity(LocalDate localDate, Long applicationId){
-        UserLeaveDays userLeaveDays = UserLeaveDays.builder()
+        return UserLeaveDays.builder()
                 .leaveApplicationId(applicationId)
                 .leaveDate(localDate)
                 .build();
-
-        return userLeaveDays;
     }
 
     @Transactional
     public void saveAllByDateList(List<LocalDate> localDateList, final Long applicationId){
         List<UserLeaveDays> leaveDaysList = localDateList.stream()
                 .map(localDate -> createLeaveDaysEntity(localDate, applicationId))
-                .collect(Collectors.toList());
+                .toList();
 
         saveAll(leaveDaysList);
     }

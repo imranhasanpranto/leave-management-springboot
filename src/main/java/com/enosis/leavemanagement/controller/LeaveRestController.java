@@ -28,7 +28,7 @@ public class LeaveRestController {
             @ModelAttribute LeaveApplicationDTO leaveApplicationDTO,
             Authentication authentication)throws FileSaveException, IllegalArgumentException {
         Users users = (Users) authentication.getPrincipal();
-        System.out.println(leaveApplicationDTO);
+        log.info("Leave Application DTO:- {}", leaveApplicationDTO);
         String message = leaveService.saveLeaveApplication(leaveApplicationDTO, users.getId());
         RestResponse response = RestResponse.builder().message(message).build();
         return ResponseEntity.ok(response);

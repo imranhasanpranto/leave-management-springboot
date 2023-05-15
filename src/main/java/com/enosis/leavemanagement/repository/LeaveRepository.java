@@ -1,13 +1,11 @@
 package com.enosis.leavemanagement.repository;
 
-import com.enosis.leavemanagement.dto.LeaveApplicationDTO;
 import com.enosis.leavemanagement.dto.UserLeaveApplicationDTO;
 import com.enosis.leavemanagement.enums.ApplicationStatus;
 import com.enosis.leavemanagement.interfaces.ProjectDateRange;
 import com.enosis.leavemanagement.model.LeaveApplication;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;

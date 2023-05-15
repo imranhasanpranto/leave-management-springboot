@@ -1,6 +1,5 @@
 package com.enosis.leavemanagement.controller;
 
-import com.enosis.leavemanagement.dto.RestResponse;
 import com.enosis.leavemanagement.service.FileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ByteArrayResource;
@@ -20,7 +19,7 @@ public class FIleRestController {
     @GetMapping("/get-file/{id}/{filePath}")
     public ResponseEntity<?> getProfileImage(@PathVariable Long id, @PathVariable String filePath) {
         try {
-            Path imagePath = Paths.get("uploads/"+String.valueOf(id)+"/"+filePath);
+            Path imagePath = Paths.get("uploads/"+id+"/"+filePath);
             if (imagePath != null) {
 
                 ByteArrayResource resource = new ByteArrayResource(Files.readAllBytes(imagePath));

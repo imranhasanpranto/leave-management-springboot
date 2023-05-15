@@ -18,7 +18,7 @@ public class UserLeaveCountService {
     private final UserLeaveCountRepository userLeaveCountRepository;
     private final GlobalConfigService globalConfigService;
 
-    public UserLeaveCount getLeaveBalance(Long userId) throws NotFoundException {
+    public UserLeaveCount getLeaveBalance(Long userId) {
         int year = Year.now().getValue();
 
         Optional<UserLeaveCount> userLeaveCountOptional = userLeaveCountRepository.findByUserIdAndYear(userId, year);
@@ -43,7 +43,7 @@ public class UserLeaveCountService {
         updateLeaveCountBalance(userId, balance);
     }
 
-    public UserLeaveCount setUserAnnualLeaveCount(Long userId, int year) throws NotFoundException {
+    public UserLeaveCount setUserAnnualLeaveCount(Long userId, int year) {
         GlobalConfig globalConfig = globalConfigService.findByName(ANNUAL_LEAVE_COUNT);
         if(globalConfig == null){
             throw new NotFoundException(ANNUAL_LEAVE_COUNT+" Not Found.");

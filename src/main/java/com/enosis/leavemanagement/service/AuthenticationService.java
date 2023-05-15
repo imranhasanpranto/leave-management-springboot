@@ -8,7 +8,6 @@ import com.enosis.leavemanagement.exceptions.AlreadyExistsException;
 import com.enosis.leavemanagement.model.Users;
 import com.enosis.leavemanagement.repository.UserRepository;
 import jakarta.transaction.Transactional;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -16,7 +15,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -43,18 +41,16 @@ public class AuthenticationService {
     }
 
     public Users convertUserDtoToEntity(UserDTO userDTO){
-        Users user = Users.builder()
+        return Users.builder()
                 .name(userDTO.getName())
                 .email(userDTO.getEmail())
                 .password(passwordEncoder.encode(userDTO.getPassword()))
                 .role(Role.Employee)
                 .build();
-
-        return user;
     }
 
     public AuthenticationResponse authenticate(AuthenticationRequest request){
-        Authentication authentication = authenticationManager.authenticate(
+        authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.getEmail(),
                         request.getPassword()

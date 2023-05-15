@@ -84,6 +84,6 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
                 .timestamp(ZonedDateTime.now(ZoneId.of("Z")))
                 .build();
 
-        return new ResponseEntity<>(apiExceptionResponse, (HttpStatus) statusCode);
+        return new ResponseEntity<>(apiExceptionResponse, statusCode);
     }
 }

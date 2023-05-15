@@ -9,11 +9,9 @@ import com.enosis.leavemanagement.model.Users;
 import com.enosis.leavemanagement.service.GlobalConfigService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequiredArgsConstructor
@@ -25,7 +23,7 @@ public class GlobalConfigController {
             @ModelAttribute GlobalConfig globalConfig,
             Authentication authentication)throws NotFoundException, UnAuthorizedAccessException{
         Users users = (Users) authentication.getPrincipal();
-        GlobalConfig config = globalConfigService.updateConfig(globalConfig, users.getRole());
+        globalConfigService.updateConfig(globalConfig, users.getRole());
         String message = "updated successfully";
         RestResponse response = RestResponse.builder()
                 .message(message)
@@ -42,7 +40,7 @@ public class GlobalConfigController {
     )throws AlreadyExistsException, UnAuthorizedAccessException{
         Users users = (Users) authentication.getPrincipal();
 
-        GlobalConfig config = globalConfigService.addConfig(globalConfig, users.getRole());
+        globalConfigService.addConfig(globalConfig, users.getRole());
         String message = "saved successfully";
         RestResponse response = RestResponse.builder()
                 .message(message)
