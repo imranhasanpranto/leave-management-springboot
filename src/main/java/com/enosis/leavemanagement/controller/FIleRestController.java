@@ -17,23 +17,12 @@ import java.nio.file.Paths;
 public class FIleRestController {
     private final FileService fileService;
     @GetMapping("/get-file/{id}/{filePath}")
-    public ResponseEntity<?> getProfileImage(@PathVariable Long id, @PathVariable String filePath) {
-        try {
-            Path imagePath = Paths.get("uploads/"+id+"/"+filePath);
-            if (imagePath != null) {
-
-                ByteArrayResource resource = new ByteArrayResource(Files.readAllBytes(imagePath));
-
-                return ResponseEntity
-                        .ok()
-                        .contentLength(imagePath.toFile().length())
-                        .contentType(MediaType.IMAGE_JPEG)
-                        .body(resource);
-            } else {
-                return ResponseEntity.status(HttpStatus.OK).build();
-            }
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+    public ResponseEntity<?> getAttachment(@PathVariable Long id, @PathVariable String filePath) {
+        ByteArrayResource resource = fileService.getAttachmentByFilePathAndId(filePath, id);
+        return ResponseEntity
+                .ok()
+                .contentLength(resource.contentLength())
+                .contentType(MediaType.IMAGE_JPEG)
+                .body(resource);
     }
 }

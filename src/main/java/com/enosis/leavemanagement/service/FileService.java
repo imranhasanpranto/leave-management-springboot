@@ -2,7 +2,12 @@ package com.enosis.leavemanagement.service;
 
 import com.enosis.leavemanagement.dto.LeaveApplicationDTO;
 import com.enosis.leavemanagement.exceptions.FileSaveException;
+import com.enosis.leavemanagement.exceptions.NotFoundException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -16,6 +21,19 @@ import java.nio.file.Paths;
 public class FileService {
     private final Path rootLocation = Paths.get("uploads");
 
+    public ByteArrayResource getAttachmentByFilePathAndId(String filePath, Long id){
+        try {
+            Path imagePath = Paths.get("uploads/"+id+"/"+filePath);
+            if (imagePath != null) {
+
+                return new ByteArrayResource(Files.readAllBytes(imagePath));
+            } else {
+                throw new NotFoundException("File not found.");
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     public String saveFile(MultipartFile file, Long userId) throws FileSaveException {
         String fileName;
