@@ -1,6 +1,7 @@
 package com.enosis.leavemanagement.service;
 
 import com.enosis.leavemanagement.dto.UserDTO;
+import com.enosis.leavemanagement.dto.UserModelToDTOMapper;
 import com.enosis.leavemanagement.model.Users;
 import com.enosis.leavemanagement.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -15,21 +16,13 @@ public class UserService {
     private final UserRepository userRepository;
 
     public List<UserDTO> getAllUsers(){
+        UserModelToDTOMapper userModelToDTOMapper = new UserModelToDTOMapper();
         return userRepository.findAll().stream()
-                .map(this::convertEntityToDto)
+                .map(userModelToDTOMapper::mapModelToDto)
                 .toList();
     }
 
     public Optional<Users> findByEmail(String email){
         return userRepository.findByEmail(email);
-    }
-
-    public UserDTO convertEntityToDto(Users user){
-        return UserDTO.builder()
-                .id(user.getId())
-                .name(user.getName())
-                .email(user.getEmail())
-                .role(user.getRole())
-                .build();
     }
 }

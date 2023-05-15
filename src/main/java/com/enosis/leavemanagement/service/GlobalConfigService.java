@@ -30,7 +30,7 @@ public class GlobalConfigService {
         return null;
     }
     @Transactional
-    public GlobalConfig updateConfig(GlobalConfig globalConfig, Role role) throws NotFoundException, UnAuthorizedAccessException {
+    public GlobalConfig updateConfig(GlobalConfig globalConfig, Role role){
         if(role.equals(Role.Admin)){
             GlobalConfig config = findByName(globalConfig.getConfigName());
             int configPrevValue = config.getConfigValue();

@@ -8,6 +8,7 @@ import com.enosis.leavemanagement.enums.Role;
 import com.enosis.leavemanagement.exceptions.FileSaveException;
 import com.enosis.leavemanagement.interfaces.ProjectDateRange;
 import com.enosis.leavemanagement.model.LeaveApplication;
+import com.enosis.leavemanagement.model.LeaveApplicationDtoToModelMapper;
 import com.enosis.leavemanagement.model.UserLeaveCount;
 import com.enosis.leavemanagement.model.Users;
 import com.enosis.leavemanagement.repository.LeaveRepository;
@@ -78,8 +79,8 @@ public class LeaveService {
 
     @Transactional
     public String saveLeaveApplication(LeaveApplicationDTO leaveApplicationDTO, Long userId) throws IllegalArgumentException, FileSaveException{
-
-        LeaveApplication leaveApplication = convertDtoToEntity(leaveApplicationDTO);
+        LeaveApplicationDtoToModelMapper modelMapper = new LeaveApplicationDtoToModelMapper();
+        LeaveApplication leaveApplication = modelMapper.mapDtoToModel(leaveApplicationDTO);
         //updating annual leave count
         LeaveDaysDTO leaveDaysDTO = getLeaveCount(leaveApplication.getFromDate().toLocalDate(), leaveApplication.getToDate().toLocalDate(), userId, -1l);
         UserLeaveCount balance = userLeaveCountService.getLeaveBalance(userId);
