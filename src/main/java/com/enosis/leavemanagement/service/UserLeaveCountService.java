@@ -45,9 +45,7 @@ public class UserLeaveCountService {
 
     public UserLeaveCount setUserAnnualLeaveCount(Long userId, int year) {
         GlobalConfig globalConfig = globalConfigService.findByName(ANNUAL_LEAVE_COUNT);
-        if(globalConfig == null){
-            throw new NotFoundException(ANNUAL_LEAVE_COUNT+" Not Found.");
-        }
+
         UserLeaveCount userLeaveCount = UserLeaveCount.builder()
                 .userId(userId)
                 .year(year)

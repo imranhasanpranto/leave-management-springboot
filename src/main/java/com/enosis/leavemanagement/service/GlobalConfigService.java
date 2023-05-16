@@ -27,16 +27,15 @@ public class GlobalConfigService {
         if(globalConfigOptional.isPresent()){
             return globalConfigOptional.get();
         }
-        return null;
+        throw new NotFoundException(
+                name+" Not Found."
+        );
     }
     @Transactional
     public GlobalConfig updateConfig(GlobalConfig globalConfig, Role role){
         if(role.equals(Role.Admin)){
             GlobalConfig config = findByName(globalConfig.getConfigName());
             int configPrevValue = config.getConfigValue();
-            if(config == null){
-                throw new NotFoundException(globalConfig.getConfigName()+" Not Found.");
-            }
             config.setConfigValue(globalConfig.getConfigValue());
             if(config.getConfigName().equals(ANNUAL_LEAVE_COUNT)){
                 updateUserLeaveCount(globalConfig.getConfigValue(), configPrevValue);
@@ -58,20 +57,20 @@ public class GlobalConfigService {
     }
 
     @Transactional
-    public GlobalConfig addConfig(GlobalConfig globalConfig, Role role) throws AlreadyExistsException, UnAuthorizedAccessException {
+    public GlobalConfig addConfig(GlobalConfig globalConfig, Role role){
         if(role.equals(Role.Admin)){
-            GlobalConfig config = findByName(globalConfig.getConfigName());
-            if(config == null){
-                config = GlobalConfig.builder()
+            try{
+                findByName(globalConfig.getConfigName());
+            }catch(NotFoundException e){
+                GlobalConfig config = GlobalConfig.builder()
                         .configName(globalConfig.getConfigName())
                         .configValue(globalConfig.getConfigValue())
                         .build();
                 config = globalConfigRepository.save(config);
 
                 return config;
-            }else{
-                throw new AlreadyExistsException(globalConfig.getConfigName()+" Already Exists.");
             }
+            throw new AlreadyExistsException(globalConfig.getConfigName()+" Already Exists.");
         }else{
             throw new UnAuthorizedAccessException("UnAuthorized Access");
         }

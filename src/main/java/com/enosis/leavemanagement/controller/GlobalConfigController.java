@@ -52,12 +52,7 @@ public class GlobalConfigController {
 
     @GetMapping("/getByName/{name}")
     public ResponseEntity<GlobalConfig> getByName(@PathVariable String name) {
-        GlobalConfig globalConfig = globalConfigService.findByName(name);;
-        if(globalConfig == null){
-            throw new NotFoundException(
-                    name+" Not Found."
-            );
-        }
+        GlobalConfig globalConfig = globalConfigService.findByName(name);
 
         return ResponseEntity.ok(globalConfig);
     }
