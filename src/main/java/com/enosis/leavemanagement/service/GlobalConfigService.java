@@ -33,11 +33,11 @@ public class GlobalConfigService {
     }
     @Transactional
     public GlobalConfig updateConfig(GlobalConfig globalConfig, Role role){
-        if(role.equals(Role.Admin)){
+        if(Role.Admin.equals(role)){
             GlobalConfig config = findByName(globalConfig.getConfigName());
             int configPrevValue = config.getConfigValue();
             config.setConfigValue(globalConfig.getConfigValue());
-            if(config.getConfigName().equals(ANNUAL_LEAVE_COUNT)){
+            if(ANNUAL_LEAVE_COUNT.equals(config.getConfigName())){
                 updateUserLeaveCount(globalConfig.getConfigValue(), configPrevValue);
             }
             return config;
@@ -58,7 +58,7 @@ public class GlobalConfigService {
 
     @Transactional
     public GlobalConfig addConfig(GlobalConfig globalConfig, Role role){
-        if(role.equals(Role.Admin)){
+        if(Role.Admin.equals(role)){
             try{
                 findByName(globalConfig.getConfigName());
             }catch(NotFoundException e){

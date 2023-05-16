@@ -124,7 +124,7 @@ public class LeaveService {
         if(leaveApplicationOptional.isPresent()){
             LeaveApplication application = leaveApplicationOptional.get();
             application.setApplicationStatus(status);
-            if(status.equals(ApplicationStatus.Rejected) || status.equals(ApplicationStatus.Canceled)){
+            if(ApplicationStatus.Rejected.equals(status) || ApplicationStatus.Canceled.equals(status)){
                 userLeaveCountService.updateLeaveCountAfterDeleteApplication(application.getUserId(), application.getLeaveCount());
             }
             return application;
@@ -139,7 +139,7 @@ public class LeaveService {
             LeaveApplication leaveApplication =  leaveApplicationOptional.get();
 
             //fetch file
-            if(leaveApplication.getFilePath() != null && !leaveApplication.getFilePath().equals("")){
+            if(leaveApplication.getFilePath() != null && !"".equals(leaveApplication.getFilePath())){
                 Path imagePath = Paths.get("uploads/"+leaveApplication.getFilePath());
                 try {
                     leaveApplication.setAttachment(Files.readAllBytes(imagePath));
@@ -159,7 +159,7 @@ public class LeaveService {
         List<UserLeaveApplicationDTO> applicationList;
         if(usersOptional.isPresent()){
             Users users = usersOptional.get();
-            if(users.getRole().equals(Role.Admin)){
+            if(Role.Admin.equals(users.getRole())){
                 applicationList = leaveRepository.findByApplicationStatusOrderByIdDesc(ApplicationStatus.Pending);
             }else {
                 applicationList = leaveRepository.findByUserIdAndApplicationStatusOrderByIdDesc(users.getId(), ApplicationStatus.Pending);

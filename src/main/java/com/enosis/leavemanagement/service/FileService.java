@@ -35,7 +35,7 @@ public class FileService {
         }
     }
 
-    public String saveFile(MultipartFile file, Long userId) throws FileSaveException {
+    public String saveFile(MultipartFile file, Long userId) {
         String fileName;
         try {
             Files.createDirectories(rootLocation);
@@ -66,8 +66,8 @@ public class FileService {
         }
     }
 
-    public String fileUpdate(LeaveApplicationDTO leaveApplicationDTO, String prevFilePath, Long userId) throws RuntimeException, FileSaveException{
-        if(prevFilePath != null && !prevFilePath.equals("")){
+    public String fileUpdate(LeaveApplicationDTO leaveApplicationDTO, String prevFilePath, Long userId){
+        if(prevFilePath != null && !"".equals(prevFilePath)){
             delete(prevFilePath);
         }
 
@@ -76,7 +76,6 @@ public class FileService {
         if(leaveApplicationDTO.getFile() != null) {
             path = saveFile(leaveApplicationDTO.getFile(), userId);
         }
-
 
         return path;
     }
